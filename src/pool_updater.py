@@ -50,6 +50,12 @@ class PoolUpdater:
             for region in self.ip_pools[isp]:
                 self.ip_pools[isp][region] = []
 
+        # 按ISP和区域组织IP和延迟数据
+        organized_data = {
+            isp: {region: [] for region in self.ip_pools[isp]}
+            for isp in self.ip_pools
+        }
+
         # 处理每个IP的测试结果
         for result in results:
             if result['status'] != 'ok':
@@ -62,30 +68,41 @@ class PoolUpdater:
                 if not full_isp:
                     continue
 
-                # 只有当测试结果有效时才处理
-                if (isinstance(test_data, dict) and
-                    test_data.get('available') and
+                # 只处理有效的测试结果
+                if (isinstance(test_data, dict) and 
+                    test_data.get('available') and 
                     test_data.get('latency', float('inf')) < float('inf')):
 
-                    # 根据节点ID确定区域
                     node_id = test_data.get('node_id')
                     region = self._get_region_by_node(full_isp, node_id)
                     
                     if region:
-                        if ip not in self.ip_pools[full_isp][region]:
-                            self.ip_pools[full_isp][region].append(ip)
-                            self.logger.info(f"添加IP {ip} 到 {full_isp} {region}，延迟: {test_data['latency']}ms")
+                        # 记录IP和延迟
+                        organized_data[full_isp][region].append({
+                            'ip': ip,
+                            'latency': test_data['latency']
+                        })
 
-        # 对每个区域的IP进行排序和限制数量
-        for isp in self.ip_pools:
-            for region in self.ip_pools[isp]:
-                # 根据延迟排序（如果有测试结果）
-                self.ip_pools[isp][region].sort(
-                    key=lambda x: self._get_ip_latency(x, results, isp)
+        # 对每个区域的IP进行排序和限制
+        max_ips = 5  # 每个区域最多保留5个IP
+        for isp in organized_data:
+            for region in organized_data[isp]:
+                # 按延迟排序
+                sorted_ips = sorted(
+                    organized_data[isp][region],
+                    key=lambda x: x['latency']
                 )
-                # 限制每个区域的IP数量
-                max_ips = self.config.get('ips_per_region', 20)
-                self.ip_pools[isp][region] = self.ip_pools[isp][region][:max_ips]
+                # 只保留延迟最低的5个IP
+                self.ip_pools[isp][region] = [
+                    item['ip'] for item in sorted_ips[:max_ips]
+                ]
+                
+                if sorted_ips:
+                    self.logger.info(
+                        f"{isp} {region}: 保留 {len(self.ip_pools[isp][region])} 个IP，"
+                        f"延迟范围 {sorted_ips[0]['latency']:.1f}ms - "
+                        f"{sorted_ips[min(max_ips-1, len(sorted_ips)-1)]['latency']:.1f}ms"
+                    )
 
         self.save_results()
         return self.ip_pools
@@ -97,7 +114,7 @@ class PoolUpdater:
             for region, nodes in node_mapping[isp].items():
                 if node_id in nodes:
                     return region
-        return "EAST"  # 默认返回EAST，或者可以返回None
+        return None  # 如果找不到对应区域则返回None
 
     def _get_ip_latency(self, ip: str, results: list[Dict], isp: str) -> float:
         """获取特定IP在指定运营商的延迟"""
