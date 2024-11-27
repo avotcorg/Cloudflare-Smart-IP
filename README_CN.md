@@ -2,7 +2,7 @@
 
 [![Test and Update DNS](https://github.com/FutureUnreal/Cloudflare-Smart-IP/actions/workflows/update-worker.yml/badge.svg)](https://github.com/FutureUnreal/Cloudflare-Smart-IP/actions/workflows/update-worker.yml)
 
-自动测试和优化 Cloudflare IP 的工具。使用来自不同中国运营商的 ITDOG 测速节点对 Cloudflare Anycast IP（1.1.1.0/24和1.0.0.0/24）进行网络质量测试，并自动更新 Cloudflare Worker 配置。
+自动测试和优化 Cloudflare IP 的工具。使用来自不同中国运营商的 ITDOG 测速节点对 Cloudflare Anycast IP（1.1.1.0/16和1.0.0.0/16）进行网络质量测试，并自动更新 Cloudflare Worker 配置。
 
 [English](./README.md) | [简体中文](#简体中文)
 
