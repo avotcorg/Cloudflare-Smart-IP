@@ -9,10 +9,10 @@ jobs:
   prepare:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
         
@@ -29,14 +29,13 @@ jobs:
           --arg api_token "${{ secrets.CF_API_TOKEN }}" \
           --arg worker_name "${{ secrets.CF_WORKER_NAME }}" \
           '.cloudflare.account_id = $account_id | .cloudflare.api_token = $api_token | .cloudflare.worker_name = $worker_name' > config/settings.json
-
         
     - name: Run tests and update worker
       run: python -m src.main
       
     - name: Upload results
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4  # 更新到 v4 版本
       with:
         name: test-results
         path: results/
