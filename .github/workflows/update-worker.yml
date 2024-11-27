@@ -23,33 +23,13 @@ jobs:
         
     - name: Update settings.json
       run: |
-        echo '{
-          "test_timeout": 10,
-          "min_request_interval": 3,
-          "retry_delay": 10,
-          "nodes_per_test": 1,
-          "ips_per_region": 5,
-          "sample_rate": 0.1,
-          "regions": [
-            "EAST",
-            "SOUTH",
-            "NORTH",
-            "CENTRAL",
-            "SOUTHWEST",
-            "NORTHWEST",
-            "NORTHEAST"
-          ],
-          "isps": [
-            "CHINA_TELECOM",
-            "CHINA_UNICOM",
-            "CHINA_MOBILE"
-          ],
-          "cloudflare": {
-            "account_id": "${{ secrets.CF_ACCOUNT_ID }}",
-            "api_token": "${{ secrets.CF_API_TOKEN }}",
-            "worker_name": "${{ secrets.CF_WORKER_NAME }}"
-          }
-        }' > config/settings.json
+        content=$(cat config/settings.json)
+        echo "$content" | jq \
+          --arg account_id "${{ secrets.CF_ACCOUNT_ID }}" \
+          --arg api_token "${{ secrets.CF_API_TOKEN }}" \
+          --arg worker_name "${{ secrets.CF_WORKER_NAME }}" \
+          '.cloudflare.account_id = $account_id | .cloudflare.api_token = $api_token | .cloudflare.worker_name = $worker_name' > config/settings.json
+
         
     - name: Run tests and update worker
       run: python -m src.main
