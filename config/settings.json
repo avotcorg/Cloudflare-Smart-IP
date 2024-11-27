@@ -4,7 +4,7 @@
   "retry_delay": 10,
   "nodes_per_test": 1,
   "ips_per_region": 20,
-  "sample_rate": 0.01,
+  "sample_rate": 1,
   "regions": [
     "EAST",
     "SOUTH",
