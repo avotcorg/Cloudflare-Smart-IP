@@ -2,7 +2,7 @@
 
 [![Test and Update DNS](https://github.com/FutureUnreal/Cloudflare-Smart-IP/actions/workflows/update-worker.yml/badge.svg)](https://github.com/FutureUnreal/Cloudflare-Smart-IP/actions/workflows/update-worker.yml)
 
-A tool for testing and selecting optimal Cloudflare IPs. It tests Cloudflare Anycast IPs (1.1.1.0/16 and 1.0.0.0/16) using ITDOG testing nodes from different Chinese ISPs, and automatically updates the Cloudflare Worker configuration based on test results.
+A tool for testing and selecting optimal Cloudflare IPs. It tests Cloudflare Anycast IPs (1.1.1.0/24 and 1.0.0.0/24) using ITDOG testing nodes from different Chinese ISPs, and automatically updates the Cloudflare Worker configuration based on test results.
 
 [English](#english) | [简体中文](./README_CN.md)
 
