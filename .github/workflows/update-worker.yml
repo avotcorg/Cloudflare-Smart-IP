@@ -10,47 +10,50 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
+        
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        
     - name: Update settings.json
       run: |
-        content=$(cat config/settings.json)
-        echo "$content" | jq \
-          --arg account_id "${{ secrets.CF_ACCOUNT_ID }}" \
-          --arg api_token "${{ secrets.CF_API_TOKEN }}" \
-          --arg worker_name "${{ secrets.CF_WORKER_NAME }}" \
-          '.cloudflare.account_id = $account_id | .cloudflare.api_token = $api_token | .cloudflare.worker_name = $worker_name' > config/settings.json
-    # 在这里添加一个成功标记
-    - name: Mark as ready
-      run: echo "✅ Environment prepared and starting IP tests..."
-
-  test-and-update:
-    needs: prepare
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    # 开始测试时就标记为成功
-    - name: Start IP testing
-      run: |
-        echo "Starting IP tests..."
-        exit 0
+        echo '{
+          "test_timeout": 10,
+          "min_request_interval": 3,
+          "retry_delay": 10,
+          "nodes_per_test": 1,
+          "ips_per_region": 5,
+          "sample_rate": 0.1,
+          "regions": [
+            "EAST",
+            "SOUTH",
+            "NORTH",
+            "CENTRAL",
+            "SOUTHWEST",
+            "NORTHWEST",
+            "NORTHEAST"
+          ],
+          "isps": [
+            "CHINA_TELECOM",
+            "CHINA_UNICOM",
+            "CHINA_MOBILE"
+          ],
+          "cloudflare": {
+            "account_id": "${{ secrets.CF_ACCOUNT_ID }}",
+            "api_token": "${{ secrets.CF_API_TOKEN }}",
+            "worker_name": "${{ secrets.CF_WORKER_NAME }}"
+          }
+        }' > config/settings.json
+        
     - name: Run tests and update worker
-      continue-on-error: true  # 即使测试失败也继续运行
       run: python -m src.main
+      
     - name: Upload results
       if: always()
       uses: actions/upload-artifact@v3
