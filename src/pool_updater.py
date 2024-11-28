@@ -30,9 +30,9 @@ class PoolUpdater:
        # 历史数据和阈值配置
        self.history_file = Path('results/ip_history.json')
        self.ip_history = self._load_history()
-       self.latency_threshold = 150  # 延迟阈值 150ms
-       self.stability_threshold = 50  # 波动阈值
-       self.score_threshold = 200  # 综合评分阈值
+       self.latency_threshold = config.get('latency_threshold', 150)
+       self.stability_threshold = config.get('stability_threshold', 50)
+       self.score_threshold = config.get('score_threshold', 200)
 
    def _load_history(self) -> Dict:
        """加载IP历史数据"""

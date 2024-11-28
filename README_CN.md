@@ -15,6 +15,7 @@
 - ⚡ 内置请求限制和错误处理
 - 🔍 详细的测试日志
 - 🤖 支持 GitHub Actions 自动化测试
+- 📈 IP历史数据追踪和增量更新
 
 ## 🚀 快速开始
 
@@ -91,6 +92,9 @@ python -m src.main
   "nodes_per_test": 1,      // 每个运营商测试的节点数
   "ips_per_region": 20,     // 每个区域保留的IP数量
   "sample_rate": 0.1,       // IP采样率（0.1表示测试10%的IP）
+  "latency_threshold": 150,    // 最大可接受延迟（毫秒）
+  "stability_threshold": 50,   // 最大可接受延迟波动
+  "score_threshold": 200,     // 最大可接受综合评分
   
   "regions": ["EAST", "SOUTH", "NORTH", "CENTRAL", "SOUTHWEST", "NORTHWEST", "NORTHEAST"],
   "isps": ["CHINA_TELECOM", "CHINA_UNICOM", "CHINA_MOBILE"],
@@ -153,9 +157,9 @@ python -m src.main
    - 快速测试建议：0.05（测试5%的IP）
 
 2. **时间间隔设置**
-   - 正常使用：min_request_interval=3, retry_delay=10
-   - 激进测试：min_request_interval=2, retry_delay=5
-   - 保守测试：min_request_interval=5, retry_delay=15
+   - 正常使用：min_request_interval=3, retry_delay=5
+   - 激进测试：min_request_interval=0, retry_delay=0
+   - 保守测试：min_request_interval=5, retry_delay=10
 
 3. **节点数量设置**
    - 建议 nodes_per_test=1，每个运营商使用一个随机节点
@@ -166,6 +170,18 @@ python -m src.main
    - 可根据需求适当增减，但建议不少于10个
 
 注意：所有时间相关的配置单位均为秒。调整这些参数时需要考虑ITDOG的请求限制，避免触发反爬虫机制。
+
+## 🔄 IP选择策略
+
+工具维护IP性能历史记录并使用增量更新策略：
+- 跟踪30天内每个IP的延迟历史
+- 基于平均延迟和稳定性评估IP
+- 保留历史表现良好的IP
+- 发现更优IP时替换表现差的IP
+- 性能差的判定标准：
+  - 延迟超过150ms
+  - 延迟波动大
+  - 综合评分超过阈值
 
 ## 📊 测试结果
 

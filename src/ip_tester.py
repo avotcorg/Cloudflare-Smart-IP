@@ -237,7 +237,7 @@ class IPTester:
                 # 每测试10个IP保存一次结果
                 if (i + 1) % 10 == 0:
                     self.save_results(results, is_intermediate=True)
-                    await asyncio.sleep(1)  # 多等待一会
+                    await asyncio.sleep(2)  # 多等待一会
                 else:
                     await asyncio.sleep(1)  # 正常等待
                     

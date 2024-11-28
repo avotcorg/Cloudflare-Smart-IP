@@ -2,7 +2,7 @@ name: Test and Update Worker
 
 on:
   schedule:
-    - cron: '0 */11 * * *'
+    - cron: '0 */7 * * *'
   workflow_dispatch:
 
 jobs:
@@ -33,10 +33,10 @@ jobs:
     - name: Run tests and update worker
       run: python -m src.main
       
-    - name: Upload results
-      if: always()
-      uses: actions/upload-artifact@v4  # 更新到 v4 版本
-      with:
-        name: test-results
-        path: results/
-        retention-days: 7
+    - name: Commit results
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add results/
+        git commit -m "chore: update test results" || echo "No changes to commit"
+        git push

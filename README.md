@@ -15,6 +15,7 @@ A tool for testing and selecting optimal Cloudflare IPs. It tests Cloudflare Any
 - ⚡ Built-in rate limiting and error handling
 - 🔍 Detailed test logs
 - 🤖 GitHub Actions support for automated testing
+- 📈 IP history tracking and incremental updates
 
 ## 🚀 Quick Start
 
@@ -91,6 +92,9 @@ python -m src.main
   "nodes_per_test": 1,      // Number of nodes to test per ISP
   "ips_per_region": 20,     // Number of IPs to keep per region
   "sample_rate": 0.1,       // IP sampling rate (0.1 = test 10% of IPs)
+  "latency_threshold": 150,    // Max acceptable latency (ms)
+  "stability_threshold": 50,   // Max acceptable latency variation
+  "score_threshold": 200      // Max acceptable combined score
   
   "regions": ["EAST", "SOUTH", "NORTH", "CENTRAL", "SOUTHWEST", "NORTHWEST", "NORTHEAST"],
   "isps": ["CHINA_TELECOM", "CHINA_UNICOM", "CHINA_MOBILE"],
@@ -153,9 +157,9 @@ python -m src.main
    - Quick test: 0.05 (test 5% of IPs)
 
 2. **Time Intervals**
-   - Normal use: min_request_interval=3, retry_delay=10
-   - Aggressive testing: min_request_interval=2, retry_delay=5
-   - Conservative testing: min_request_interval=5, retry_delay=15
+   - Normal use: min_request_interval=3, retry_delay=5
+   - Aggressive testing: min_request_interval=0, retry_delay=0
+   - Conservative testing: min_request_interval=5, retry_delay=10
 
 3. **Node Count**
    - Recommended nodes_per_test=1 (one random node per ISP)
@@ -166,6 +170,18 @@ python -m src.main
    - Adjust based on needs, but recommend not less than 10
 
 Note: All time-related configurations are in seconds. Consider ITDOG's request limits when adjusting these parameters to avoid triggering anti-crawling mechanisms.
+
+## 🔄 IP Selection Strategy
+
+The tool maintains a history of IP performance and uses an incremental update strategy:
+- Tracks latency history for each IP over 30 days
+- Evaluates IPs based on average latency and stability
+- Retains well-performing IPs from previous tests
+- Replaces poor-performing IPs when better alternatives are found
+- Poor performance criteria:
+  - Latency > 150ms
+  - High latency variation
+  - Combined score > threshold
 
 ## 📊 Results
 
