@@ -4,7 +4,7 @@
   "retry_delay": 0,
   "nodes_per_test": 1,
   "ips_per_region": 20,
-  "sample_rate": 0.001,
+  "sample_rate": 0.00001,
   "regions": [
     "EAST",
     "SOUTH",
@@ -20,9 +20,9 @@
     "CHINA_MOBILE"
   ],
   "cloudflare": {
-    "account_id": "",
-    "api_token": "",
-    "worker_name": ""
+    "account_id": "5bcb945e7ede1901d2316601029e6fcb",
+    "api_token": "KJEKRfMQomtcJvrpuqKzP97STxfVbBowwz0sKD0Q",
+    "worker_name": "cfip"
   },
   "NODE_MAPPING": {
     "CHINA_TELECOM": {
