@@ -59,28 +59,35 @@ class IPTester:
         return base64.b64encode(encrypted.encode()).decode()
 
     def generate_ip_list(self) -> List[str]:
-        """从配置文件生成要测试的IP列表"""
         ip_list = []
         ip_ranges = self.config.get('ip_ranges', [])
         skip_ips = set(self.config.get('skip_ips', []))
-        
+       
         for ip_range in ip_ranges:
             prefix = ip_range.get('prefix', '')
             start = ip_range.get('start', 2)
             end = ip_range.get('end', 255)
-            
-            # 处理3段IP
-            if prefix.count('.') == 1:  # 如 "172.66"
-                for third in range(0, 256):
-                    for fourth in range(start, end + 1):
+           
+            prefix_parts = prefix.split('.')
+            if len(prefix_parts) == 2:  # 如 "104.27"
+                for third in range(start, end + 1):  # 配置的范围,如0-207
+                    for fourth in range(0, 256):
                         ip = f"{prefix}.{third}.{fourth}"
                         if ip not in skip_ips:
                             ip_list.append(ip)
-            else:  # 4段IP
+            elif len(prefix_parts) == 3:  # 如 "104.27.0"
                 for fourth in range(start, end + 1):
                     ip = f"{prefix}.{fourth}"
                     if ip not in skip_ips:
                         ip_list.append(ip)
+       
+       # 应用抽样率
+       if 'sample_rate' in self.config:
+           sample_size = int(len(ip_list) * self.config['sample_rate'])
+           ip_list = random.sample(ip_list, sample_size)
+       
+       self.logger.info(f"生成IP列表: 总计 {len(ip_list)} 个IP")
+       return ip_list
         
         # 应用抽样率
         if 'sample_rate' in self.config:
