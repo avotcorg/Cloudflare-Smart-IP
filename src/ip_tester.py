@@ -70,7 +70,7 @@ class IPTester:
             
             prefix_parts = prefix.split('.')
             if len(prefix_parts) == 2:  # 如 "104.27"
-                for third in range(start, end + 1):  
+                for third in range(start, end + 1):  # 配置的范围,如0-207
                     for fourth in range(0, 256):
                         ip = f"{prefix}.{third}.{fourth}"
                         if ip not in skip_ips:
@@ -80,33 +80,14 @@ class IPTester:
                     ip = f"{prefix}.{fourth}"
                     if ip not in skip_ips:
                         ip_list.append(ip)
-                        
-        self.logger.info(f"生成IP列表: 总计 {len(ip_list)} 个IP")
-        return ip_list
-   
-   # 应用抽样率
-   if 'sample_rate' in self.config:
-       sample_size = int(len(ip_list) * self.config['sample_rate'])
-       ip_list = random.sample(ip_list, sample_size)
-   
-   self.logger.info(f"生成IP列表: 总计 {len(ip_list)} 个IP")
-   return ip_list
-       
-       # 应用抽样率
-       if 'sample_rate' in self.config:
-           sample_size = int(len(ip_list) * self.config['sample_rate'])
-           ip_list = random.sample(ip_list, sample_size)
-       
-       self.logger.info(f"生成IP列表: 总计 {len(ip_list)} 个IP")
-       return ip_list
-        
-        # 应用抽样率
-        if 'sample_rate' in self.config:
-            sample_size = int(len(ip_list) * self.config['sample_rate'])
-            ip_list = random.sample(ip_list, sample_size)
-        
-        self.logger.info(f"生成IP列表: 总计 {len(ip_list)} 个IP")
-        return ip_list
+            
+            # 应用抽样率
+            if 'sample_rate' in self.config:
+                sample_size = int(len(ip_list) * self.config['sample_rate'])
+                ip_list = random.sample(ip_list, sample_size)
+            
+            self.logger.info(f"生成IP列表: 总计 {len(ip_list)} 个IP")
+            return ip_list
 
     async def get_data(self, ip: str, node_id: str) -> Dict:
         """获取单个IP的测试数据"""
