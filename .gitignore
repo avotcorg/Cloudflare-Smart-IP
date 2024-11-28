@@ -26,7 +26,11 @@ logs/
 *.log
 
 # Results
-results/
+results/*.log
+!results/ip_history.json
+!results/test_results_latest.json
+!results/ip_pools_latest.json
+!results/worker_latest.js
 
 # Environment variables
 .env
