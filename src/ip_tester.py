@@ -62,24 +62,27 @@ class IPTester:
         ip_list = []
         ip_ranges = self.config.get('ip_ranges', [])
         skip_ips = set(self.config.get('skip_ips', []))
-   
+        
         for ip_range in ip_ranges:
             prefix = ip_range.get('prefix', '')
             start = ip_range.get('start', 2)
             end = ip_range.get('end', 255)
-       
+            
             prefix_parts = prefix.split('.')
             if len(prefix_parts) == 2:  # 如 "104.27"
-            for third in range(start, end + 1):  # 配置的范围,如0-207
-                for fourth in range(0, 256):
-                    ip = f"{prefix}.{third}.{fourth}"
+                for third in range(start, end + 1):  
+                    for fourth in range(0, 256):
+                        ip = f"{prefix}.{third}.{fourth}"
+                        if ip not in skip_ips:
+                            ip_list.append(ip)
+            elif len(prefix_parts) == 3:  # 如 "104.27.0"
+                for fourth in range(start, end + 1):
+                    ip = f"{prefix}.{fourth}"
                     if ip not in skip_ips:
                         ip_list.append(ip)
-        elif len(prefix_parts) == 3:  # 如 "104.27.0"
-            for fourth in range(start, end + 1):
-                ip = f"{prefix}.{fourth}"
-                if ip not in skip_ips:
-                    ip_list.append(ip)
+                        
+        self.logger.info(f"生成IP列表: 总计 {len(ip_list)} 个IP")
+        return ip_list
    
    # 应用抽样率
    if 'sample_rate' in self.config:
