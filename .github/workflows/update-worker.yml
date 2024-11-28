@@ -39,4 +39,4 @@ jobs:
         git config --local user.name "github-actions[bot]"
         git add -f results/
         git commit -m "chore: update test results" || echo "No changes to commit"
-        git push
+        git push origin ${GITHUB_REF##*/}
