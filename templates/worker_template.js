@@ -7,7 +7,7 @@ const ASN_TO_ISP = {
   '4134': 'CHINA_TELECOM',
   '4809': 'CHINA_TELECOM',
   // 联通
-  '4837': 'CHINA_UNICOM',
+  '4837': 'CHINA_UNICOM', 
   '9929': 'CHINA_UNICOM',
   '4808': 'CHINA_UNICOM',
   // 移动
@@ -18,13 +18,20 @@ const ASN_TO_ISP = {
 // 区域列表
 const REGIONS = [
   'EAST',
-  'NORTH',
+  'NORTH', 
   'SOUTH',
   'CENTRAL',
   'SOUTHWEST',
   'NORTHWEST',
   'NORTHEAST'
 ];
+
+// 错误类型定义
+const ERRORS = {
+  NO_IP: '无可用IP',
+  UNKNOWN_ISP: '未知运营商',
+  INVALID_REGION: '无效区域'
+};
 
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request));
@@ -58,18 +65,24 @@ async function handleRequest(request) {
       }
     });
   } catch (error) {
+    const status = error.message === ERRORS.NO_IP ? 503 : 500;
     return new Response(JSON.stringify({
       status: 'error',
-      message: error.message
+      message: error.message,
+      client: clientInfo
     }), {
-      status: 500,
+      status: status,
       headers: { 'content-type': 'application/json' }
     });
   }
 }
 
 function determineISP(asn) {
-  return ASN_TO_ISP[asn] || 'UNKNOWN';
+  const isp = ASN_TO_ISP[asn];
+  if (!isp) {
+    throw new Error(ERRORS.UNKNOWN_ISP);
+  }
+  return isp;
 }
 
 function determineRegion(clientInfo) {
@@ -91,34 +104,34 @@ function determineRegion(clientInfo) {
 async function selectBestIP(isp, region) {
   let candidates = [];
 
-  // 1. 尝试同ISP同区域
-  if (IP_POOLS[isp] && IP_POOLS[isp][region]) {
+  // 1. 优先选择同ISP同区域的IP
+  if (IP_POOLS[isp] && IP_POOLS[isp][region] && IP_POOLS[isp][region].length > 0) {
     candidates = IP_POOLS[isp][region];
   }
 
-  // 2. 如果没有找到，尝试同ISP其他区域
+  // 2. 如果没有找到,尝试同ISP其他区域
   if (candidates.length === 0 && IP_POOLS[isp]) {
     for (const r of REGIONS) {
-      if (r !== region && IP_POOLS[isp][r]) {
+      if (r !== region && IP_POOLS[isp][r] && IP_POOLS[isp][r].length > 0) {
         candidates = candidates.concat(IP_POOLS[isp][r]);
       }
     }
   }
 
-  // 3. 如果还是没有，使用其他ISP的IP
+  // 3. 如果还是没有,使用其他ISP的IP
   if (candidates.length === 0) {
     for (const otherIsp in IP_POOLS) {
-      if (otherIsp !== isp && IP_POOLS[otherIsp][region]) {
+      if (otherIsp !== isp && IP_POOLS[otherIsp][region] && IP_POOLS[otherIsp][region].length > 0) {
         candidates = candidates.concat(IP_POOLS[otherIsp][region]);
       }
     }
   }
 
-  // 4. 如果还是没有，返回默认IP
+  // 4. 如果还是没有找到可用IP,则抛出错误
   if (candidates.length === 0) {
-    throw new Error('No available IPs');
+    throw new Error(ERRORS.NO_IP);
   }
 
-  // 随机选择一个IP
+  // 随机选择一个IP,避免单点故障
   return candidates[Math.floor(Math.random() * candidates.length)];
 }

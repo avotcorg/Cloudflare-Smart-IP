@@ -1,10 +1,10 @@
 {
-  "test_timeout": 10,
-  "min_request_interval": 3,
-  "retry_delay": 10,
+  "test_timeout": 5,
+  "min_request_interval": 0,
+  "retry_delay": 0,
   "nodes_per_test": 1,
   "ips_per_region": 20,
-  "sample_rate": 0.2,
+  "sample_rate": 0.001,
   "regions": [
     "EAST",
     "SOUTH",

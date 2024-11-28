@@ -69,15 +69,22 @@ class IPTester:
             start = ip_range.get('start', 2)
             end = ip_range.get('end', 255)
             
-            for fourth in range(start, end + 1):
-                ip = f"{prefix}.{fourth}"
-                if ip not in skip_ips:
-                    ip_list.append(ip)
+            # 处理3段IP
+            if prefix.count('.') == 1:  # 如 "172.66"
+                for third in range(0, 256):
+                    for fourth in range(start, end + 1):
+                        ip = f"{prefix}.{third}.{fourth}"
+                        if ip not in skip_ips:
+                            ip_list.append(ip)
+            else:  # 4段IP
+                for fourth in range(start, end + 1):
+                    ip = f"{prefix}.{fourth}"
+                    if ip not in skip_ips:
+                        ip_list.append(ip)
         
-        # 应用抽样率（如果配置中有设置）
+        # 应用抽样率
         if 'sample_rate' in self.config:
             sample_size = int(len(ip_list) * self.config['sample_rate'])
-            import random
             ip_list = random.sample(ip_list, sample_size)
         
         self.logger.info(f"生成IP列表: 总计 {len(ip_list)} 个IP")
