@@ -5,6 +5,10 @@ on:
     - cron: '0 */7 * * *'
   workflow_dispatch:
 
+concurrency: 
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -12,12 +16,17 @@ jobs:
   prepare:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{ github.ref }}
     
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.10'
+        cache: 'pip'
         
     - name: Install dependencies
       run: |
@@ -36,11 +45,27 @@ jobs:
     - name: Run tests and update worker
       run: python -m src.main
       
-    - name: Commit results
+    - name: Commit and push changes
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        git pull origin ${GITHUB_REF##*/}
-        git add -f results/
-        git commit -m "chore: update test results" || echo "No changes to commit"
+        
+        # 保存当前更改
+        cp -r results results_backup
+        
+        # 获取并切换到最新的远程分支
+        git fetch origin ${GITHUB_REF##*/}
+        git reset --hard origin/${GITHUB_REF##*/}
+        
+        # 恢复新的测试结果
+        rm -rf results
+        cp -r results_backup results
+        
+        # 添加并提交更改
+        git add results/
+        git commit -m "chore: update test results [skip ci]" || echo "No changes to commit"
+        
+        # 推送更改
         git push origin ${GITHUB_REF##*/}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
